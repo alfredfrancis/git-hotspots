@@ -15,23 +15,12 @@ To install the `git-hotspots` CLI tool, follow these steps:
 
 1.  **Ensure Go is installed:** If you don't have Go installed, you can download it from the official Go website: [https://golang.org/doc/install](https://golang.org/doc/install)
 
-2.  **Clone the repository:**
+2.  **Install the tool:**
     ```bash
-    git clone https://github.com/your-username/git-hotspots.git # Replace with actual repo URL if available
-    cd git-hotspots
+    go install git-hotspots
     ```
 
-3.  **Build the executable:**
-    ```bash
-    go build -o git-hotspots ./cmd/git-hotspots
-    ```
-
-    This will create an executable named `git-hotspots` in the current directory.
-
-4.  **(Optional) Add to your PATH:** To run the tool from any directory, move the executable to a directory included in your system's PATH (e.g., `/usr/local/bin`):
-    ```bash
-    sudo mv git-hotspots /usr/local/bin/
-    ```
+    This command will download the source code, build the executable, and place it in your `$GOPATH/bin` directory (which should be in your system's PATH).
 
 ## Usage
 
@@ -82,7 +71,7 @@ The tool will display a terminal UI showing the top 10 hotspot files and top 10 
 
 ### Project Structure
 
--   `cmd/git-hotspots/main.go`: The main entry point for the CLI application.
+-   `main.go`: The main entry point for the CLI application.
 -   `internal/git/`: Contains the core logic for Git repository analysis.
 -   `pkg/ui/`: Contains the logic for the terminal user interface.
 
