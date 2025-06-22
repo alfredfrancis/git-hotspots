@@ -1,14 +1,15 @@
 package git
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 // setupTestRepo creates a temporary git repository for testing.
@@ -20,29 +21,32 @@ func setupTestRepo(t *testing.T) string {
 	}
 
 	// Initialize a git repository
-	cmd := exec.Command("git", "init")
-	cmd.Dir = tmpDir
-	if err := cmd.Run(); err != nil {
+	_, err = git.PlainInit(tmpDir, false)
+	if err != nil {
 		t.Fatalf("Failed to init git repo: %v", err)
 	}
 
-	// Configure git user (required for commits)
-	cmd = exec.Command("git", "config", "user.email", "test@example.com")
-	cmd.Dir = tmpDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to configure git user email: %v", err)
-	}
-	cmd = exec.Command("git", "config", "user.name", "Test User")
-	cmd.Dir = tmpDir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("Failed to configure git user name: %v", err)
-	}
+	// We'll set the user config in the createCommit function instead
+	// as we don't need global config for our tests
 
 	return tmpDir
 }
 
 // createCommit creates a commit with the given files and message.
 func createCommit(t *testing.T, repoPath string, files []string, message string, commitTime time.Time) {
+	// Open the repository
+	repo, err := git.PlainOpen(repoPath)
+	if err != nil {
+		t.Fatalf("Failed to open repository: %v", err)
+	}
+
+	// Get the worktree
+	wt, err := repo.Worktree()
+	if err != nil {
+		t.Fatalf("Failed to get worktree: %v", err)
+	}
+
+	// Create and add files
 	for _, file := range files {
 		filePath := filepath.Join(repoPath, file)
 		dir := filepath.Dir(filePath)
@@ -52,22 +56,35 @@ func createCommit(t *testing.T, repoPath string, files []string, message string,
 		if err := ioutil.WriteFile(filePath, []byte("test content"), 0644); err != nil {
 			t.Fatalf("Failed to write file %s: %v", filePath, err)
 		}
-		cmd := exec.Command("git", "add", file)
-		cmd.Dir = repoPath
-		if err := cmd.Run(); err != nil {
+		
+		// Add the file to the staging area
+		_, err = wt.Add(file)
+		if err != nil {
 			t.Fatalf("Failed to add file %s: %v", file, err)
 		}
 	}
 
-	// Set GIT_AUTHOR_DATE and GIT_COMMITTER_DATE for reproducible commit dates
-	cmd := exec.Command("git", "commit", "-m", message)
-	cmd.Dir = repoPath
-	cmd.Env = append(os.Environ(),
-		fmt.Sprintf("GIT_AUTHOR_DATE=%s", commitTime.Format(time.RFC3339)),
-		fmt.Sprintf("GIT_COMMITTER_DATE=%s", commitTime.Format(time.RFC3339)),
-	)
-	if err := cmd.Run(); err != nil {
+	// Create commit with the specified time
+	commit, err := wt.Commit(message, &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test User",
+			Email: "test@example.com",
+			When:  commitTime,
+		},
+		Committer: &object.Signature{
+			Name:  "Test User",
+			Email: "test@example.com",
+			When:  commitTime,
+		},
+	})
+	if err != nil {
 		t.Fatalf("Failed to commit: %v", err)
+	}
+
+	// Verify the commit was created
+	_, err = repo.CommitObject(commit)
+	if err != nil {
+		t.Fatalf("Failed to get commit object: %v", err)
 	}
 }
 
