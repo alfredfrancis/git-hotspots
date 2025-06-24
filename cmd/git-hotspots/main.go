@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,26 +14,22 @@ import (
 var testMode bool = false
 
 func main() {
+	// Define flags
+	topCount := flag.Int("top", 10, "Number of top files and directories to display")
+	flag.Bool("test-mode", false, "Run in test mode (no UI)")
+	
+	// Parse flags
+	flag.Parse()
+	
 	// Check for test mode flag
-	for _, arg := range os.Args {
-		if arg == "--test-mode" {
-			testMode = true
-			// Remove the flag from args
-			newArgs := make([]string, 0, len(os.Args)-1)
-			for _, a := range os.Args {
-				if a != "--test-mode" {
-					newArgs = append(newArgs, a)
-				}
-			}
-			os.Args = newArgs
-			break
-		}
+	if flag.Lookup("test-mode").Value.String() == "true" {
+		testMode = true
 	}
 
 	// Determine the repository path
 	repoPath := "."
-	if len(os.Args) > 1 {
-		repoPath = os.Args[1]
+	if flag.NArg() > 0 {
+		repoPath = flag.Arg(0)
 	}
 
 	// Resolve the absolute path
@@ -62,8 +59,13 @@ func main() {
 	if testMode {
 		fmt.Println("Git Hotspots Analysis Summary:")
 		fmt.Println("\nTop File Hotspots:")
+		displayCount := 5 // Default for test mode
+		if *topCount < displayCount {
+			displayCount = *topCount
+		}
+		
 		for i, h := range fileHotspots {
-			if i >= 5 {
+			if i >= displayCount {
 				break
 			}
 			fmt.Printf("- %s: %d commits (Top contributor: %s with %d commits)\n", 
@@ -72,7 +74,7 @@ func main() {
 		
 		fmt.Println("\nTop Directory Hotspots:")
 		for i, h := range dirHotspots {
-			if i >= 5 {
+			if i >= displayCount {
 				break
 			}
 			fmt.Printf("- %s: %d commits (Top contributor: %s with %d commits)\n", 
@@ -80,7 +82,7 @@ func main() {
 		}
 	} else {
 		// Display hotspots in UI
-		ui.DisplayHotspots(fileHotspots, dirHotspots)
+		ui.DisplayHotspots(fileHotspots, dirHotspots, *topCount)
 	}
 }
 

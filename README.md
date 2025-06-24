@@ -7,6 +7,8 @@ This is a command-line interface (CLI) tool written in Go that analyzes Git comm
 - Checks if the current directory is a Git repository.
 - Analyzes Git commits from the last 1 year.
 - Identifies top hotspot files and directories based on commit count.
+- Identifies the top contributor for each file and directory.
+- Configurable number of top files and directories to display.
 - Presents the hotspots in a clear, terminal-based user interface.
 
 ## Installation
@@ -36,27 +38,39 @@ Alternatively, you can specify the path to a Git repository:
 git-hotspots /path/to/your/repo
 ```
 
-The tool will display a terminal UI showing the top 10 hotspot files and top 10 hotspot directories.
+The tool will display a terminal UI showing the top hotspot files and directories.
+
+### Command-line Options
+
+- `--top N`: Specify the number of top files and directories to display (default: 10)
+  ```bash
+  git-hotspots --top 5
+  ```
+
+- `--test-mode`: Run in test mode without launching the UI (useful for automated testing)
+  ```bash
+  git-hotspots --test-mode
+  ```
 
 ## Example Output
 
 ```
 ┌───────────────────────────────Top Hotspot Files──────────────────────────────┐
-│Commits  File Path                                                            │
-│--------------------                                                          │
-│      2    file1.txt                                                          │
-│      1    src/util.go                                                        │
-│      1    src/main.go                                                        │
-│      1    file2.txt                                                          │
+│Commits  Top Contributor (Commits)  File Path                                 │
+│-----------------------------------------------                               │
+│      2    John Doe (2)              file1.txt                                │
+│      1    Jane Smith (1)            src/util.go                              │
+│      1    John Doe (1)              src/main.go                              │
+│      1    Jane Smith (1)            file2.txt                                │
 │                                                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
 ┌────────────────────────────Top Hotspot Directories───────────────────────────┐
-│Commits  Directory Path                                                       │
-│------------------------                                                      │
-│      2    src                                                                │
+│Commits  Top Contributor (Commits)  Directory Path                            │
+│---------------------------------------------------                           │
+│      2    John Doe (2)              src                                      │
 │                                                                              │
 │                                                                              │
 │                                                                              │

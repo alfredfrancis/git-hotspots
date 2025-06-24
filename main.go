@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,10 +11,16 @@ import (
 )
 
 func main() {
+	// Define flags
+	topCount := flag.Int("top", 10, "Number of top files and directories to display")
+	
+	// Parse flags
+	flag.Parse()
+	
 	// Determine the repository path
 	repoPath := "."
-	if len(os.Args) > 1 {
-		repoPath = os.Args[1]
+	if flag.NArg() > 0 {
+		repoPath = flag.Arg(0)
 	}
 
 	// Resolve the absolute path
@@ -40,7 +47,7 @@ func main() {
 	fileHotspots, dirHotspots := git.IdentifyHotspots(commits)
 
 	// Display hotspots in UI
-	ui.DisplayHotspots(fileHotspots, dirHotspots)
+	ui.DisplayHotspots(fileHotspots, dirHotspots, *topCount)
 }
 
 

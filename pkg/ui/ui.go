@@ -10,7 +10,8 @@ import (
 )
 
 // DisplayHotspots displays the given file and directory hotspots in a terminal UI.
-func DisplayHotspots(fileHotspots []git.Hotspot, dirHotspots []git.Hotspot) {
+// topCount specifies the number of top files and directories to display.
+func DisplayHotspots(fileHotspots []git.Hotspot, dirHotspots []git.Hotspot, topCount int) {
 	app := tview.NewApplication()
 
 	// Sort hotspots for consistent display
@@ -29,7 +30,7 @@ func DisplayHotspots(fileHotspots []git.Hotspot, dirHotspots []git.Hotspot) {
 	fmt.Fprintln(fileTextView, "[yellow]Commits  Top Contributor (Commits)  File Path[-]")
 	fmt.Fprintln(fileTextView, "[yellow]-----------------------------------------------[-]")
 	for i, hotspot := range fileHotspots {
-		if i >= 10 { // Display top 10 files
+		if i >= topCount { // Display top N files
 			break
 		}
 		fmt.Fprintf(fileTextView, "%7d    %-20s (%d)    %s\n", 
@@ -47,7 +48,7 @@ func DisplayHotspots(fileHotspots []git.Hotspot, dirHotspots []git.Hotspot) {
 	fmt.Fprintln(dirTextView, "[yellow]Commits  Top Contributor (Commits)  Directory Path[-]")
 	fmt.Fprintln(dirTextView, "[yellow]---------------------------------------------------[-]")
 	for i, hotspot := range dirHotspots {
-		if i >= 10 { // Display top 10 directories
+		if i >= topCount { // Display top N directories
 			break
 		}
 		fmt.Fprintf(dirTextView, "%7d    %-20s (%d)    %s\n", 
