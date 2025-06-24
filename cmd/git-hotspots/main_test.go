@@ -115,8 +115,8 @@ func TestCLIIntegration(t *testing.T) {
 		t.Fatalf("Failed to build git-hotspots executable: %v\nStderr: %s", err, buildErr.String())
 	}
 
-	// Run the CLI tool against the test repository
-	cliCmd := exec.Command("./git-hotspots", tmpDir)
+	// Run the CLI tool against the test repository with test mode flag
+	cliCmd := exec.Command("./git-hotspots", "--test-mode", tmpDir)
 	cliCmd.Dir = currentDir
 	var out bytes.Buffer
 	cliCmd.Stdout = &out
@@ -150,7 +150,7 @@ func TestCLIIntegration(t *testing.T) {
 	}
 	defer os.RemoveAll(nonGitDir)
 
-	cliCmd = exec.Command("./git-hotspots", nonGitDir)
+	cliCmd = exec.Command("./git-hotspots", "--test-mode", nonGitDir)
 	cliCmd.Dir = currentDir
 	out.Reset()
 	cliCmd.Stdout = &out

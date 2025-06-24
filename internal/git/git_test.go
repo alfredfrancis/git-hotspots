@@ -159,7 +159,7 @@ func TestIdentifyHotspots(t *testing.T) {
 		},
 		{
 			Hash:    "hash2",
-			Author:  "Test User",
+			Author:  "Another User",
 			Date:    time.Now(),
 			Message: "Commit 2",
 			Files:   []string{"fileA.txt", "dir2/fileC.txt"},
@@ -180,16 +180,31 @@ func TestIdentifyHotspots(t *testing.T) {
 		t.Errorf("Expected 4 file hotspots, got %d", len(fileHotspots))
 	}
 
-	fileMap := make(map[string]int)
+	// Create maps for easier testing
+	fileMap := make(map[string]Hotspot)
 	for _, h := range fileHotspots {
-		fileMap[h.Path] = h.Commits
+		fileMap[h.Path] = h
 	}
 
-	if fileMap["fileA.txt"] != 3 {
-		t.Errorf("Expected fileA.txt to have 3 commits, got %d", fileMap["fileA.txt"])
+	// Check fileA.txt (should have 3 commits, with Test User as top contributor with 2 commits)
+	fileA := fileMap["fileA.txt"]
+	if fileA.Commits != 3 {
+		t.Errorf("Expected fileA.txt to have 3 commits, got %d", fileA.Commits)
 	}
-	if fileMap["dir1/fileB.txt"] != 1 {
-		t.Errorf("Expected dir1/fileB.txt to have 1 commit, got %d", fileMap["dir1/fileB.txt"])
+	if fileA.TopContributor != "Test User" {
+		t.Errorf("Expected fileA.txt top contributor to be 'Test User', got '%s'", fileA.TopContributor)
+	}
+	if fileA.AuthorCommits != 2 {
+		t.Errorf("Expected fileA.txt top contributor to have 2 commits, got %d", fileA.AuthorCommits)
+	}
+
+	// Check dir1/fileB.txt (should have 1 commit from Test User)
+	fileB := fileMap["dir1/fileB.txt"]
+	if fileB.Commits != 1 {
+		t.Errorf("Expected dir1/fileB.txt to have 1 commit, got %d", fileB.Commits)
+	}
+	if fileB.TopContributor != "Test User" {
+		t.Errorf("Expected dir1/fileB.txt top contributor to be 'Test User', got '%s'", fileB.TopContributor)
 	}
 
 	// Check directory hotspots
@@ -197,16 +212,30 @@ func TestIdentifyHotspots(t *testing.T) {
 		t.Errorf("Expected 2 directory hotspots, got %d", len(dirHotspots))
 	}
 
-	dirMap := make(map[string]int)
+	dirMap := make(map[string]Hotspot)
 	for _, h := range dirHotspots {
-		dirMap[h.Path] = h.Commits
+		dirMap[h.Path] = h
 	}
 
-	if dirMap["dir1"] != 2 {
-		t.Errorf("Expected dir1 to have 2 commits, got %d", dirMap["dir1"])
+	// Check dir1 (should have 2 commits, with Test User as top contributor with 2 commits)
+	dir1 := dirMap["dir1"]
+	if dir1.Commits != 2 {
+		t.Errorf("Expected dir1 to have 2 commits, got %d", dir1.Commits)
 	}
-	if dirMap["dir2"] != 1 {
-		t.Errorf("Expected dir2 to have 1 commit, got %d", dirMap["dir2"])
+	if dir1.TopContributor != "Test User" {
+		t.Errorf("Expected dir1 top contributor to be 'Test User', got '%s'", dir1.TopContributor)
+	}
+	if dir1.AuthorCommits != 2 {
+		t.Errorf("Expected dir1 top contributor to have 2 commits, got %d", dir1.AuthorCommits)
+	}
+
+	// Check dir2 (should have 1 commit from Another User)
+	dir2 := dirMap["dir2"]
+	if dir2.Commits != 1 {
+		t.Errorf("Expected dir2 to have 1 commit, got %d", dir2.Commits)
+	}
+	if dir2.TopContributor != "Another User" {
+		t.Errorf("Expected dir2 top contributor to be 'Another User', got '%s'", dir2.TopContributor)
 	}
 }
 

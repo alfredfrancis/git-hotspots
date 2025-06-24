@@ -9,7 +9,26 @@ import (
 	"git-hotspots/pkg/ui"
 )
 
+// testMode is used to disable UI in tests
+var testMode bool = false
+
 func main() {
+	// Check for test mode flag
+	for _, arg := range os.Args {
+		if arg == "--test-mode" {
+			testMode = true
+			// Remove the flag from args
+			newArgs := make([]string, 0, len(os.Args)-1)
+			for _, a := range os.Args {
+				if a != "--test-mode" {
+					newArgs = append(newArgs, a)
+				}
+			}
+			os.Args = newArgs
+			break
+		}
+	}
+
 	// Determine the repository path
 	repoPath := "."
 	if len(os.Args) > 1 {
@@ -39,8 +58,30 @@ func main() {
 	// Identify hotspots
 	fileHotspots, dirHotspots := git.IdentifyHotspots(commits)
 
-	// Display hotspots in UI
-	ui.DisplayHotspots(fileHotspots, dirHotspots)
+	// In test mode, just print a summary instead of launching the UI
+	if testMode {
+		fmt.Println("Git Hotspots Analysis Summary:")
+		fmt.Println("\nTop File Hotspots:")
+		for i, h := range fileHotspots {
+			if i >= 5 {
+				break
+			}
+			fmt.Printf("- %s: %d commits (Top contributor: %s with %d commits)\n", 
+				h.Path, h.Commits, h.TopContributor, h.AuthorCommits)
+		}
+		
+		fmt.Println("\nTop Directory Hotspots:")
+		for i, h := range dirHotspots {
+			if i >= 5 {
+				break
+			}
+			fmt.Printf("- %s: %d commits (Top contributor: %s with %d commits)\n", 
+				h.Path, h.Commits, h.TopContributor, h.AuthorCommits)
+		}
+	} else {
+		// Display hotspots in UI
+		ui.DisplayHotspots(fileHotspots, dirHotspots)
+	}
 }
 
 

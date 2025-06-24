@@ -26,13 +26,17 @@ func DisplayHotspots(fileHotspots []git.Hotspot, dirHotspots []git.Hotspot) {
 	fileTextView.SetBorder(true).SetTitle("Top Hotspot Files")
 
 	// Populate file hotspots
-	fmt.Fprintln(fileTextView, "[yellow]Commits  File Path[-]")
-	fmt.Fprintln(fileTextView, "[yellow]--------------------[-]")
+	fmt.Fprintln(fileTextView, "[yellow]Commits  Top Contributor (Commits)  File Path[-]")
+	fmt.Fprintln(fileTextView, "[yellow]-----------------------------------------------[-]")
 	for i, hotspot := range fileHotspots {
 		if i >= 10 { // Display top 10 files
 			break
 		}
-		fmt.Fprintf(fileTextView, "%7d    %s\n", hotspot.Commits, hotspot.Path)
+		fmt.Fprintf(fileTextView, "%7d    %-20s (%d)    %s\n", 
+			hotspot.Commits, 
+			hotspot.TopContributor, 
+			hotspot.AuthorCommits,
+			hotspot.Path)
 	}
 
 	// Create a text view for directory hotspots
@@ -40,13 +44,17 @@ func DisplayHotspots(fileHotspots []git.Hotspot, dirHotspots []git.Hotspot) {
 	dirTextView.SetBorder(true).SetTitle("Top Hotspot Directories")
 
 	// Populate directory hotspots
-	fmt.Fprintln(dirTextView, "[yellow]Commits  Directory Path[-]")
-	fmt.Fprintln(dirTextView, "[yellow]------------------------[-]")
+	fmt.Fprintln(dirTextView, "[yellow]Commits  Top Contributor (Commits)  Directory Path[-]")
+	fmt.Fprintln(dirTextView, "[yellow]---------------------------------------------------[-]")
 	for i, hotspot := range dirHotspots {
 		if i >= 10 { // Display top 10 directories
 			break
 		}
-		fmt.Fprintf(dirTextView, "%7d    %s\n", hotspot.Commits, hotspot.Path)
+		fmt.Fprintf(dirTextView, "%7d    %-20s (%d)    %s\n", 
+			hotspot.Commits, 
+			hotspot.TopContributor, 
+			hotspot.AuthorCommits,
+			hotspot.Path)
 	}
 
 	// Create a flex layout to arrange the text views

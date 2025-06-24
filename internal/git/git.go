@@ -89,10 +89,12 @@ func AnalyzeCommits(repoPath string) ([]CommitInfo, error) {
 	return commits, nil
 }
 
-// Hotspot represents a file or directory with its commit count.
+// Hotspot represents a file or directory with its commit count and top contributor.
 type Hotspot struct {
-	Path  string
-	Commits int
+	Path           string
+	Commits        int
+	TopContributor string
+	AuthorCommits  int
 }
 
 // getFilesInCommit returns a list of files changed in a commit
@@ -187,25 +189,78 @@ func getFilesInCommit(commit *object.Commit) ([]string, error) {
 func IdentifyHotspots(commits []CommitInfo) ([]Hotspot, []Hotspot) {
 	fileCommits := make(map[string]int)
 	dirCommits := make(map[string]int)
+	fileAuthors := make(map[string]map[string]int) // file -> author -> commit count
+	dirAuthors := make(map[string]map[string]int)  // dir -> author -> commit count
 
+	// Initialize maps
 	for _, commit := range commits {
+		author := commit.Author
 		for _, file := range commit.Files {
+			// Track file commits
 			fileCommits[file]++
+			
+			// Track file authors
+			if _, ok := fileAuthors[file]; !ok {
+				fileAuthors[file] = make(map[string]int)
+			}
+			fileAuthors[file][author]++
+			
+			// Track directory commits
 			dir := filepath.Dir(file)
 			if dir != "." {
 				dirCommits[dir]++
+				
+				// Track directory authors
+				if _, ok := dirAuthors[dir]; !ok {
+					dirAuthors[dir] = make(map[string]int)
+				}
+				dirAuthors[dir][author]++
 			}
 		}
 	}
 
+	// Create file hotspots with top contributor information
 	var fileHotspots []Hotspot
 	for path, count := range fileCommits {
-		fileHotspots = append(fileHotspots, Hotspot{Path: path, Commits: count})
+		topContributor := ""
+		topContributions := 0
+		
+		// Find top contributor for this file
+		for author, authorCommits := range fileAuthors[path] {
+			if authorCommits > topContributions {
+				topContributor = author
+				topContributions = authorCommits
+			}
+		}
+		
+		fileHotspots = append(fileHotspots, Hotspot{
+			Path:           path,
+			Commits:        count,
+			TopContributor: topContributor,
+			AuthorCommits:  topContributions,
+		})
 	}
 
+	// Create directory hotspots with top contributor information
 	var dirHotspots []Hotspot
 	for path, count := range dirCommits {
-		dirHotspots = append(dirHotspots, Hotspot{Path: path, Commits: count})
+		topContributor := ""
+		topContributions := 0
+		
+		// Find top contributor for this directory
+		for author, authorCommits := range dirAuthors[path] {
+			if authorCommits > topContributions {
+				topContributor = author
+				topContributions = authorCommits
+			}
+		}
+		
+		dirHotspots = append(dirHotspots, Hotspot{
+			Path:           path,
+			Commits:        count,
+			TopContributor: topContributor,
+			AuthorCommits:  topContributions,
+		})
 	}
 
 	// Sort hotspots by commit count in descending order
